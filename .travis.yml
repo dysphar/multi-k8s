@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dysphar/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true dysphar/react-test npm test
+
+after_success:
+  - docker build -t dysphar/multi-client ./client
+  - docker build -t dysphar/multi-nginx ./nginx
+  - docker build -t dysphar/multi-server ./server
+  - docker build -t dysphar/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push dysphar/multi-client
+  - docker push dysphar/multi-nginx
+  - docker push dysphar/multi-server
+  - docker push dysphar/multi-worker
